@@ -1,0 +1,17 @@
+cryptography
+pandas
+vyper-config
+semver
+splunk-sdk
+uvloop
+httptools
+elasticsearch==7.13.4
+fastapi
+pydantic
+uvicorn
+trio
+aiohttp
+httpx
+orjson
+atlassian-python-api
+python-keycloak

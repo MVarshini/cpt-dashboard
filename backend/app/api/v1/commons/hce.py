@@ -19,7 +19,7 @@ async def getData(start_datetime: date, end_datetime: date, configpath: str):
     }
 
     es = ElasticService(configpath=configpath)
-    response = await es.post(query=query, start_date=start_datetime, end_date=end_datetime, timestamp_field='date')
+    response = await es.post(query=query, start_date=start_datetime, end_date=end_datetime, timestamp_field='date', size=10)
     await es.close()
     tasks = [item['_source'] for item in response]
     jobs = pd.json_normalize(tasks)

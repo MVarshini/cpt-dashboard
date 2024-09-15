@@ -5,6 +5,8 @@ from app.services.search import ElasticService
 
 async def getData(start_datetime: date, end_datetime: date, configpath: str):
     query = {
+        "size":5,
+        "from":0,
         "query": {
             "bool": {
                 "filter": {
@@ -18,8 +20,10 @@ async def getData(start_datetime: date, end_datetime: date, configpath: str):
         }
     }
 
+    print("ocm")
     es = ElasticService(configpath=configpath)
     response = await es.post(query=query, start_date=start_datetime, end_date=end_datetime, timestamp_field='metrics.earliest')
+    print("ocm")
     await es.close()
     tasks = [item['_source'] for item in response]
     jobs = pd.json_normalize(tasks)

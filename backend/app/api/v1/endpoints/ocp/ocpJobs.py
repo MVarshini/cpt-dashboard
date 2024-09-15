@@ -23,34 +23,39 @@ router = APIRouter()
 async def jobs(start_date: date = Query(None, description="Start date for searching jobs, format: 'YYYY-MM-DD'", examples=["2020-11-10"]),
                 end_date: date = Query(None, description="End date for searching jobs, format: 'YYYY-MM-DD'", examples=["2020-11-15"]),
                 pretty: bool = Query(False, description="Output contet in pretty format.")):
-    if start_date is None:
-        start_date = datetime.utcnow().date()
-        start_date = start_date - timedelta(days=5)
+    try:
+        if start_date is None:
+            start_date = datetime.utcnow().date()
+            start_date = start_date - timedelta(days=5)
 
-    if end_date is None:
-        end_date = datetime.utcnow().date()
+        if end_date is None:
+            end_date = datetime.utcnow().date()
 
-    if start_date > end_date:
-        return Response(content=json.dumps({'error': "invalid date format, start_date must be less than end_date"}), status_code=422)
+        if start_date > end_date:
+            return Response(content=json.dumps({'error': "invalid date format, start_date must be less than end_date"}), status_code=422)
 
-    results = await getData(start_date, end_date, 'ocp.elasticsearch')
+        results = await getData(start_date, end_date, 'ocp.elasticsearch')
+        print("dump")
+        if len(results) >= 1:
+            response = {
+                'startDate': start_date.__str__(),
+                'endDate': end_date.__str__(),
+                'results': results['test'].to_dict('records'),
+                'total': results['total']
+            }
+        else :
+            response = {
+                'startDate': start_date.__str__(),
+                'endDate': end_date.__str__(),
+                'results': []
+            }
 
-    if len(results) >= 1:
-        response = {
-            'startDate': start_date.__str__(),
-            'endDate': end_date.__str__(),
-            'results': results.to_dict('records')
-        }
-    else :
-        response = {
-            'startDate': start_date.__str__(),
-            'endDate': end_date.__str__(),
-            'results': []
-        }
+        if pretty:
+            json_str = json.dumps(response, indent=4)
+            return Response(content=json_str, media_type='application/json')
 
-    if pretty:
-        json_str = json.dumps(response, indent=4)
-        return Response(content=json_str, media_type='application/json')
-
-    jsonstring = json.dumps(response)
-    return jsonstring
+        jsonstring = json.dumps(response)
+        return jsonstring
+    except Exception as err:
+            raise("I'm here")
+            print(f"{type(err).__name__} was raised: {err}") 

@@ -62,7 +62,8 @@ async def jobs(start_date: date = Query(None, description="Start date for search
     response = {
         'startDate': start_date.__str__(),
         'endDate': end_date.__str__(),
-        'results': results_df.to_dict('records')
+        'results': results_df.to_dict('records'),
+        'test':'menu'
     }
 
     if pretty:
