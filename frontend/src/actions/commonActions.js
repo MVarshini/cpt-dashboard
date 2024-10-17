@@ -1,10 +1,10 @@
 import * as TYPES from "@/actions/types.js";
 
 import { fetchOCPJobs, setOCPCatFilters } from "./ocpActions";
+import { fetchQuayJobsData, setQuayCatFilters } from "./quayActions";
 
 import { cloneDeep } from "lodash";
 import { setCPTCatFilters } from "./homeActions";
-import { setQuayCatFilters } from "./quayActions";
 import { setTelcoCatFilters } from "./telcoActions";
 
 export const sortTable = (colName, currState) => (dispatch, getState) => {
@@ -19,16 +19,20 @@ export const sortTable = (colName, currState) => (dispatch, getState) => {
   ];
   try {
     if (activeSortIndex !== null && typeof activeSortIndex !== "undefined") {
-      dispatch({ type: TYPES.SET_OCP_OFFSET, payload: 1 });
       const fieldName = countObj.includes(colName)
         ? colName
         : `${colName}.keyword`;
       const sortObj = { [fieldName]: { order: activeSortDir } };
-      dispatch({ type: TYPES.SET_OCP_SORT_OBJ, payload: sortObj });
-      console.log(sortObj);
-      const isFromSorting = true;
-
-      dispatch(fetchOCPJobs(isFromSorting));
+      const shouldRefresh = true;
+      if (currState === "ocp") {
+        dispatch({ type: TYPES.SET_OCP_OFFSET, payload: 0 });
+        dispatch({ type: TYPES.SET_OCP_SORT_OBJ, payload: sortObj });
+        dispatch(fetchOCPJobs(shouldRefresh));
+      } else if (currState === "quay") {
+        dispatch({ type: TYPES.SET_QUAY_OFFSET, payload: 0 });
+        dispatch({ type: TYPES.SET_QUAY_SORT_OBJ, payload: sortObj });
+        dispatch(fetchQuayJobsData(shouldRefresh));
+      }
     }
   } catch (error) {
     console.log(error);
@@ -167,3 +171,22 @@ export const getSelectedFilter =
 
     return selectedFilters;
   };
+
+export const getRequestParams = (currState) => (dispatch, getState) => {
+  const { start_date, end_date, size, offset, sort, appliedFilters } =
+    getState()[currState];
+  const params = {
+    pretty: true,
+    ...(start_date && { start_date }),
+    ...(end_date && { end_date }),
+    size: size,
+    offset: offset,
+  };
+  if (Object.keys(sort).length > 0) {
+    params["sort"] = JSON.stringify(sort);
+  }
+  if (Object.keys(appliedFilters).length > 0) {
+    params["filter"] = JSON.stringify(appliedFilters);
+  }
+  return params;
+};

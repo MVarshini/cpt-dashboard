@@ -48,15 +48,18 @@ class ElasticService:
         try:    
             """Runs a query and returns the results"""           
             """Handles queries that require data from ES docs"""
+            print("Im inside post")
             if timestamp_field:
                 """Handles queries that have a timestamp field. Queries from both new and archive instances"""
                 if self.prev_es:
+                    print("helium")
                     self.prev_index = self.prev_index_prefix + (self.prev_index if indice is None else indice)
                     today = datetime.today().date()
                     seven_days_ago = today - timedelta(days=7)
                     if start_date and start_date > seven_days_ago:
                         previous_results = {}
                     else:
+                        print("li")
                         new_end_date = min(end_date, seven_days_ago) if end_date else seven_days_ago
                         query['query']['bool']['filter'][0]['range'][timestamp_field]['lte'] = str(new_end_date)
                         if start_date:
@@ -68,6 +71,7 @@ class ElasticService:
                                 size=size)
                             previous_results = {"data":response['hits']['hits'], "total":response['hits']["total"]["value"]}
                         else:
+                            print("be")
                             response = await self.prev_es.search(
                                 index=self.prev_index+"*",
                                 body=jsonable_encoder(query),
@@ -81,6 +85,7 @@ class ElasticService:
                     if end_date and end_date < seven_days_ago:
                         new_results = {}
                     else:
+                        print("bo")
                         new_start_date = max(start_date, seven_days_ago) if start_date else seven_days_ago                          
                         new_results = {}
                         query['query']['bool']['filter'][0]['range'][timestamp_field]['gte'] = str(new_start_date)                           

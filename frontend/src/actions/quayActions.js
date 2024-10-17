@@ -1,68 +1,68 @@
 import * as API_ROUTES from "@/utils/apiConstants";
 import * as TYPES from "@/actions/types.js";
 
-import {
-  DEFAULT_PER_PAGE,
-  START_PAGE,
-} from "@/assets/constants/paginationConstants";
 import { appendDateFilter, appendQueryString } from "@/utils/helper.js";
 import {
-  buildFilterData,
-  calculateMetrics,
   deleteAppliedFilters,
-  getFilteredData,
+  getRequestParams,
   getSelectedFilter,
 } from "./commonActions";
 
 import API from "@/utils/axiosInstance";
+import { START_PAGE } from "@/assets/constants/paginationConstants";
 import { cloneDeep } from "lodash";
 import { showFailureToast } from "@/actions/toastActions";
 
-export const fetchQuayJobsData = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: TYPES.LOADING });
-    const { start_date, end_date } = getState().quay;
-    const response = await API.get(API_ROUTES.QUAY_JOBS_API_V1, {
-      params: {
-        pretty: true,
-        ...(start_date && { start_date }),
-        ...(end_date && { end_date }),
-      },
-    });
-    if (response.status === 200) {
-      const startDate = response.data.startDate,
-        endDate = response.data.endDate;
-      //on initial load startDate and endDate are empty, so from response append to url
-      appendDateFilter(startDate, endDate);
-      dispatch({
-        type: TYPES.SET_QUAY_DATE_FILTER,
-        payload: {
-          start_date: startDate,
-          end_date: endDate,
-        },
+export const fetchQuayJobsData =
+  (shouldStartFresh = false) =>
+  async (dispatch, getState) => {
+    try {
+      dispatch({ type: TYPES.LOADING });
+
+      const { results } = cloneDeep(getState().quay);
+      const params = dispatch(getRequestParams("quay"));
+
+      const response = await API.get(API_ROUTES.QUAY_JOBS_API_V1, {
+        params,
       });
+      if (response.status === 200) {
+        const startDate = response.data.startDate,
+          endDate = response.data.endDate;
+        //on initial load startDate and endDate are empty, so from response append to url
+        appendDateFilter(startDate, endDate);
+        dispatch({
+          type: TYPES.SET_QUAY_DATE_FILTER,
+          payload: {
+            start_date: startDate,
+            end_date: endDate,
+          },
+        });
+      }
+      if (response?.data?.results?.length > 0) {
+        if (shouldStartFresh) {
+          dispatch(setQuayPage(1));
+        }
+        dispatch({
+          type: TYPES.SET_QUAY_JOBS_DATA,
+          payload: shouldStartFresh
+            ? response.data.results
+            : [...results, ...response.data.results],
+        });
+        dispatch(tableReCalcValues());
+      }
+    } catch (error) {
+      dispatch(showFailureToast());
     }
-    if (response?.data?.results?.length > 0) {
-      dispatch({
-        type: TYPES.SET_QUAY_JOBS_DATA,
-        payload: response.data.results,
-      });
-      dispatch({
-        type: TYPES.SET_QUAY_FILTERED_DATA,
-        payload: response.data.results,
-      });
-      dispatch(applyFilters());
-      dispatch(tableReCalcValues());
-    }
-  } catch (error) {
-    dispatch(showFailureToast());
-  }
-  dispatch({ type: TYPES.COMPLETED });
-};
+    dispatch({ type: TYPES.COMPLETED });
+  };
 
 export const setQuayPage = (pageNo) => ({
   type: TYPES.SET_QUAY_PAGE,
   payload: pageNo,
+});
+export const setQuayOffset = (offset) => ({
+  type: TYPES.SET_QUAY_OFFSET,
+  payload: offset,
 });
 
 export const setQuayPageOptions = (page, perPage) => ({
@@ -73,14 +73,13 @@ export const setQuaySortIndex = (index) => ({
   type: TYPES.SET_QUAY_SORT_INDEX,
   payload: index,
 });
-
 export const setQuaySortDir = (direction) => ({
   type: TYPES.SET_QUAY_SORT_DIR,
   payload: direction,
 });
 export const sliceQuayTableRows =
   (startIdx, endIdx) => (dispatch, getState) => {
-    const results = [...getState().quay.filteredResults];
+    const results = [...getState().quay.results];
 
     dispatch({
       type: TYPES.SET_QUAY_INIT_JOBS,
@@ -118,25 +117,12 @@ export const removeQuayAppliedFilters =
     dispatch(applyFilters());
   };
 
-export const applyFilters = () => (dispatch, getState) => {
-  const { appliedFilters } = getState().quay;
+export const applyFilters = () => (dispatch) => {
+  dispatch(setQuayPage(START_PAGE));
 
-  const results = [...getState().quay.results];
-
-  const isFilterApplied =
-    Object.keys(appliedFilters).length > 0 &&
-    Object.values(appliedFilters).flat().length > 0;
-
-  const filtered = isFilterApplied
-    ? getFilteredData(appliedFilters, results)
-    : results;
-
-  dispatch({
-    type: TYPES.SET_QUAY_FILTERED_DATA,
-    payload: filtered,
-  });
+  dispatch(fetchQuayJobsData(true));
   dispatch(tableReCalcValues());
-  dispatch(buildFilterData("quay"));
+  dispatch(buildFilterData());
 };
 export const setQuayAppliedFilters = (navigate) => (dispatch, getState) => {
   const { selectedFilters, start_date, end_date } = getState().quay;
@@ -200,7 +186,7 @@ export const setQuayDateFilter =
   };
 
 export const setQuayOtherSummaryFilter = () => (dispatch, getState) => {
-  const filteredResults = [...getState().quay.filteredResults];
+  const filteredResults = [...getState().quay.results];
   const keyWordArr = ["success", "failure"];
   const data = filteredResults.filter(
     (item) => !keyWordArr.includes(item.jobStatus?.toLowerCase())
@@ -212,10 +198,18 @@ export const setQuayOtherSummaryFilter = () => (dispatch, getState) => {
   dispatch(tableReCalcValues());
 };
 
-export const getQuaySummary = () => (dispatch, getState) => {
-  const results = [...getState().quay.filteredResults];
-
-  const countObj = calculateMetrics(results);
+export const getQuaySummary = (summary) => (dispatch) => {
+  const countObj = {
+    successCount: summary["success"] ?? 0,
+    failureCount: summary["failure"] ?? 0,
+    othersCount: 0,
+    total: summary["total"] ?? 0,
+  };
+  for (const key in summary) {
+    if (key !== "total" && key !== "success" && key !== "failure") {
+      countObj["othersCount"] += summary[key];
+    }
+  }
   dispatch({
     type: TYPES.SET_QUAY_SUMMARY,
     payload: countObj,
@@ -243,7 +237,7 @@ export const fetchGraphData = (uuid) => async (dispatch, getState) => {
   try {
     dispatch({ type: TYPES.GRAPH_LOADING });
 
-    const graphData = getState().ocp.graphData;
+    const graphData = getState().quay.graphData;
     const hasData = graphData.filter((a) => a.uuid === uuid).length > 0;
     if (!hasData) {
       const response = await API.get(`${API_ROUTES.QUAY_GRAPH_API_V1}/${uuid}`);
@@ -265,8 +259,32 @@ export const fetchGraphData = (uuid) => async (dispatch, getState) => {
   dispatch({ type: TYPES.GRAPH_COMPLETED });
 };
 
-export const tableReCalcValues = () => (dispatch) => {
-  dispatch(getQuaySummary());
-  dispatch(setQuayPageOptions(START_PAGE, DEFAULT_PER_PAGE));
-  dispatch(sliceQuayTableRows(0, DEFAULT_PER_PAGE));
+export const tableReCalcValues = () => (dispatch, getState) => {
+  const { page, perPage } = getState().quay;
+  const startIdx = page !== 1 ? (page - 1) * perPage : 0;
+  const endIdx = page !== 1 ? page * perPage - 1 : perPage;
+
+  dispatch(sliceQuayTableRows(startIdx, endIdx));
+};
+
+export const buildFilterData = () => async (dispatch, getState) => {
+  try {
+    const { tableFilters, categoryFilterValue } = getState().quay;
+
+    const params = dispatch(getRequestParams("quay"));
+
+    const response = await API.get("/api/v1/quay/filters", { params });
+
+    if (response.status === 200 && response?.data?.filterData?.length > 0) {
+      let data = cloneDeep(response.data.filterData);
+      console.log(data);
+
+      dispatch(getQuaySummary(response.data.summary));
+
+      const activeFilter = categoryFilterValue || tableFilters[0].name;
+      await dispatch(setQuayCatFilters(activeFilter));
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };

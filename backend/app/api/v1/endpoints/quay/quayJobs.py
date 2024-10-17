@@ -22,7 +22,12 @@ router = APIRouter()
         },)
 async def jobs(start_date: date = Query(None, description="Start date for searching jobs, format: 'YYYY-MM-DD'", examples=["2020-11-10"]),
                 end_date: date = Query(None, description="End date for searching jobs, format: 'YYYY-MM-DD'", examples=["2020-11-15"]),
-                pretty: bool = Query(False, description="Output contet in pretty format.")):
+                pretty: bool = Query(False, description="Output contet in pretty format."),
+                size: int = Query(None, description="Number of jobs to fetch"),
+                offset: int = Query(None, description="Offset Number to fetch jobs from"),
+                sort: str = Query(None, description="To sort the field on specified direction"),
+                filter: str = Query(None, description="To filter jobs")
+                ):
     if start_date is None:
         start_date = datetime.utcnow().date()
         start_date = start_date - timedelta(days=5)
@@ -33,7 +38,7 @@ async def jobs(start_date: date = Query(None, description="Start date for search
     if start_date > end_date:
         return Response(content=json.dumps({'error': "invalid date format, start_date must be less than end_date"}), status_code=422)
 
-    results = await getData(start_date, end_date, 'quay.elasticsearch')
+    results = await getData(start_date, end_date, size, offset, sort, filter, 'quay.elasticsearch')
 
     if len(results) >= 1 :
         response = {

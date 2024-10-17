@@ -6,7 +6,7 @@ import { setTelcoSortDir, setTelcoSortIndex } from "./telcoActions";
 import { sortTable } from "./commonActions";
 import store from "@/store/store";
 
-const { dispatch, getState } = store;
+const { dispatch } = store;
 export const setActiveSortDir = (dir, currType) => {
   if (currType === "cpt") {
     dispatch(setCPTSortDir(dir));

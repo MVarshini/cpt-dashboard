@@ -106,7 +106,7 @@ async def getData(start_datetime: date, end_datetime: date, size:int, offset:int
         return ({"data":jobs,"total":response["total"]})
     
     except Exception as err:
-        print(f"{type(err).__name__} was raised14: {err}") 
+        print(f"{type(err).__name__} was raised: {err}") 
 
 def getMatchPhrase(key, item):
     buildObj = {"match_phrase": {key: item}}  

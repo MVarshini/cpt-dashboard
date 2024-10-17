@@ -27,7 +27,7 @@ const Quay = () => {
     activeSortDir,
     page,
     perPage,
-    filteredResults,
+    results,
     tableFilters,
     filterOptions,
     categoryFilterValue,
@@ -101,7 +101,7 @@ const Quay = () => {
     <>
       <div ref={pageTopRef} />
       <MetricsTab
-        totalItems={filteredResults.length}
+        totalItems={results?.length}
         summary={summary}
         updateSelectedFilter={updateSelectedFilter}
         navigation={navigate}
@@ -130,7 +130,7 @@ const Quay = () => {
         activeSortDir={activeSortDir}
         page={page}
         perPage={perPage}
-        totalItems={filteredResults.length}
+        totalItems={results.length}
         type={"quay"}
         addExpansion={true}
         isRunExpanded={isRunExpanded}

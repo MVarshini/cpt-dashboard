@@ -2,7 +2,11 @@ import * as API_ROUTES from "@/utils/apiConstants";
 import * as TYPES from "./types.js";
 
 import { appendDateFilter, appendQueryString } from "@/utils/helper.js";
-import { deleteAppliedFilters, getSelectedFilter } from "./commonActions";
+import {
+  deleteAppliedFilters,
+  getRequestParams,
+  getSelectedFilter,
+} from "./commonActions";
 
 import API from "@/utils/axiosInstance";
 import { cloneDeep } from "lodash";
@@ -13,10 +17,9 @@ export const fetchOCPJobs =
   async (dispatch, getState) => {
     try {
       dispatch({ type: TYPES.LOADING });
-      const { results, sort } = getState().ocp;
+      const { results } = getState().ocp;
 
-      console.log(JSON.stringify(sort));
-      const params = dispatch(getRequestParams());
+      const params = dispatch(getRequestParams("ocp"));
 
       const response = await API.get(API_ROUTES.OCP_JOBS_API_V1, { params });
       if (response.status === 200) {
@@ -67,24 +70,6 @@ export const setOCPOffset = (offset) => ({
   payload: offset,
 });
 
-const getRequestParams = () => (dispatch, getState) => {
-  const { start_date, end_date, size, offset, sort, appliedFilters } =
-    getState().ocp;
-  const params = {
-    pretty: true,
-    ...(start_date && { start_date }),
-    ...(end_date && { end_date }),
-    size: size,
-    offset: offset,
-  };
-  if (Object.keys(sort).length > 0) {
-    params["sort"] = JSON.stringify(sort);
-  }
-  if (Object.keys(appliedFilters).length > 0) {
-    params["filter"] = JSON.stringify(appliedFilters);
-  }
-  return params;
-};
 export const setOCPPageOptions = (page, perPage) => ({
   type: TYPES.SET_OCP_PAGE_OPTIONS,
   payload: { page, perPage },
@@ -294,9 +279,10 @@ export const buildFilterData = () => async (dispatch, getState) => {
   try {
     const { tableFilters, categoryFilterValue } = getState().ocp;
 
-    const params = dispatch(getRequestParams());
+    const params = dispatch(getRequestParams("ocp"));
 
     const response = await API.get("/api/v1/ocp/filters", { params });
+
     if (response.status === 200 && response?.data?.filterData?.length > 0) {
       let data = cloneDeep(response.data.filterData);
       for (let i = 0; i < tableFilters.length; i++) {

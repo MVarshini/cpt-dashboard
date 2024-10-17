@@ -27,7 +27,7 @@ async def jobs(start_date: date = Query(None, description="Start date for search
                 size: int = Query(None, description="Number of jobs to fetch"),
                 offset: int = Query(None, description="Offset Number to fetch jobs from"),
                 sort: str = Query(None, description="To sort the field on specified direction"),
-                filter: str = Query(None, description="Filter jobs")
+                filter: str = Query(None, description="To filter jobs")
                 ):
     try:
         if start_date is None:

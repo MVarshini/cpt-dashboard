@@ -2,6 +2,8 @@ import * as TYPES from "@/actions/types";
 
 import {
   DEFAULT_PER_PAGE,
+  FACTOR,
+  INITIAL_OFFSET,
   START_PAGE,
 } from "@/assets/constants/paginationConstants";
 
@@ -54,12 +56,15 @@ const initialState = {
     { name: "Total", value: "totalNodesCount" },
   ],
   filterData: [],
-  filteredResults: [],
   filterOptions: [],
   categoryFilterValue: "Benchmark",
   appliedFilters: {},
   activeSortDir: null,
   activeSortIndex: null,
+  sort: {},
+  totalJobs: 0,
+  size: DEFAULT_PER_PAGE * FACTOR,
+  offset: INITIAL_OFFSET,
   tableData: [],
   graphData: [],
   page: START_PAGE,
@@ -82,18 +87,26 @@ const QuayReducer = (state = initialState, action = {}) => {
         start_date: payload.start_date,
         end_date: payload.end_date,
       };
+    case TYPES.SET_QUAY_PAGE_TOTAL:
+      return {
+        ...state,
+        totalJobs: payload.total,
+        offset: payload.offset,
+      };
+    case TYPES.SET_QUAY_OFFSET:
+      return { ...state, offset: payload };
     case TYPES.SET_QUAY_SORT_INDEX:
       return { ...state, activeSortIndex: payload };
     case TYPES.SET_QUAY_SORT_DIR:
       return { ...state, activeSortDir: payload };
+    case TYPES.SET_QUAY_SORT_OBJ:
+      return { ...state, sort: payload };
     case TYPES.SET_QUAY_PAGE:
       return { ...state, page: payload };
     case TYPES.SET_QUAY_PAGE_OPTIONS:
       return { ...state, page: payload.page, perPage: payload.perPage };
     case TYPES.SET_QUAY_INIT_JOBS:
       return { ...state, tableData: payload };
-    case TYPES.SET_QUAY_FILTERED_DATA:
-      return { ...state, filteredResults: payload };
     case TYPES.SET_QUAY_FILTER_OPTIONS:
       return { ...state, filterOptions: payload };
     case TYPES.SET_QUAY_CATEGORY_FILTER:
