@@ -1,6 +1,5 @@
 import {
-  buildFilterData,
-  fetchOCPJobsData,
+  fetchDataConcurrently,
   setCPTDateFilter,
   setFilterFromURL,
   setSelectedFilter,
@@ -58,18 +57,7 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const fetchDataConcurrently = async () => {
-      try {
-        await Promise.all([
-          dispatch(buildFilterData()),
-          dispatch(fetchOCPJobsData()),
-        ]);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchDataConcurrently();
+    dispatch(fetchDataConcurrently());
   }, [dispatch]);
   // Filter Helper
   const updateSelectedFilter = (category, value, isFromMetrics) => {
