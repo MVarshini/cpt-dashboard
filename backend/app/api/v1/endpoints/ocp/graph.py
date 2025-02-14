@@ -279,6 +279,8 @@ async def graph(uuid: str):
 
 
 async def jobSummary(uuids: list):
+    # if not uuids:
+    #     return []
     index = "ripsaw-kube-burner*"
     ids = '" OR uuid: "'.join(uuids)
     query = {
