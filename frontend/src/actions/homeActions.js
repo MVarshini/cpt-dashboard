@@ -241,6 +241,7 @@ export const tableReCalcValues = () => (dispatch, getState) => {
 
 export const buildFilterData = () => async (dispatch, getState) => {
   try {
+    dispatch({ type: TYPES.LOADING });
     const { tableFilters, categoryFilterValue } = getState().ocp;
 
     const params = dispatch(getRequestParams("cpt"));
@@ -265,6 +266,7 @@ export const buildFilterData = () => async (dispatch, getState) => {
     console.error("Error fetching filter data:", error);
     dispatch(showFailureToast());
   }
+  dispatch({ type: TYPES.COMPLETED });
 };
 
 export const fetchDataConcurrently = () => async (dispatch) => {
