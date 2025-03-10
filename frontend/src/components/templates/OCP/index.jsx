@@ -31,7 +31,6 @@ const OCP = () => {
     tableFilters,
     filterOptions,
     categoryFilterValue,
-    filterData,
     appliedFilters,
     start_date,
     end_date,

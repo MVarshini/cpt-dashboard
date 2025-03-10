@@ -31,62 +31,58 @@ import store from "@/store/store";
 
 const { dispatch } = store;
 
+const filterActions = {
+  cpt: {
+    setCategory: setCPTCatFilters,
+    setApplied: setCPTAppliedFilters,
+    removeApplied: removeCPTAppliedFilters,
+    setDate: applyCPTDateFilter,
+    setOtherSummary: setCPTOtherSummaryFilter,
+  },
+  ocp: {
+    setCategory: setOCPCatFilters,
+    setApplied: setOCPAppliedFilters,
+    removeApplied: removeOCPAppliedFilters,
+    setDate: applyOCPDateFilter,
+    setOtherSummary: setOCPOtherSummaryFilter,
+  },
+  quay: {
+    setCategory: setQuayCatFilters,
+    setApplied: setQuayAppliedFilters,
+    removeApplied: removeQuayAppliedFilters,
+    setDate: applyQuayDateFilter,
+    setOtherSummary: setQuayOtherSummaryFilter,
+  },
+  telco: {
+    setCategory: setTelcoCatFilters,
+    setApplied: setTelcoAppliedFilters,
+    removeApplied: removeTelcoAppliedFilters,
+    setDate: applyTelcoDateFilter,
+    setOtherSummary: setTelcoOtherSummaryFilter,
+  },
+};
+
 export const setCatFilters = (category, currType) => {
-  if (currType === "cpt") {
-    dispatch(setCPTCatFilters(category));
-  } else if (currType === "ocp") {
-    dispatch(setOCPCatFilters(category));
-  } else if (currType === "quay") {
-    dispatch(setQuayCatFilters(category));
-  } else if (currType === "telco") {
-    dispatch(setTelcoCatFilters(category));
-  }
+  filterActions[currType]?.setCategory &&
+    dispatch(filterActions[currType].setCategory(category));
 };
 
 export const setAppliedFilters = (navigation, currType) => {
-  if (currType === "cpt") {
-    dispatch(setCPTAppliedFilters(navigation));
-  } else if (currType === "ocp") {
-    dispatch(setOCPAppliedFilters(navigation));
-  } else if (currType === "quay") {
-    dispatch(setQuayAppliedFilters(navigation));
-  } else if (currType === "telco") {
-    dispatch(setTelcoAppliedFilters(navigation));
-  }
+  filterActions[currType]?.setApplied &&
+    dispatch(filterActions[currType].setApplied(navigation));
 };
 
 export const removeAppliedFilters = (key, value, navigation, currType) => {
-  if (currType === "cpt") {
-    dispatch(removeCPTAppliedFilters(key, value, navigation));
-  } else if (currType === "ocp") {
-    dispatch(removeOCPAppliedFilters(key, value, navigation));
-  } else if (currType === "quay") {
-    dispatch(removeQuayAppliedFilters(key, value, navigation));
-  } else if (currType === "telco") {
-    dispatch(removeTelcoAppliedFilters(key, value, navigation));
-  }
+  filterActions[currType]?.setApplied &&
+    dispatch(filterActions[currType].removeApplied(key, value, navigation));
 };
 
 export const setDateFilter = (date, key, navigation, currType) => {
-  if (currType === "cpt") {
-    dispatch(applyCPTDateFilter(date, key, navigation));
-  } else if (currType === "ocp") {
-    dispatch(applyOCPDateFilter(date, key, navigation));
-  } else if (currType === "quay") {
-    dispatch(applyQuayDateFilter(date, key, navigation));
-  } else if (currType === "telco") {
-    dispatch(applyTelcoDateFilter(date, key, navigation));
-  }
+  filterActions[currType]?.setApplied &&
+    dispatch(filterActions[currType].setDate(date, key, navigation));
 };
 
 export const setOtherSummaryFilter = (currType) => {
-  if (currType === "cpt") {
-    dispatch(setCPTOtherSummaryFilter());
-  } else if (currType === "ocp") {
-    dispatch(setOCPOtherSummaryFilter());
-  } else if (currType === "quay") {
-    dispatch(setQuayOtherSummaryFilter());
-  } else if (currType === "telco") {
-    dispatch(setTelcoOtherSummaryFilter());
-  }
+  filterActions[currType]?.setApplied &&
+    dispatch(filterActions[currType].setOtherSummary());
 };
