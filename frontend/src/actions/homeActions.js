@@ -61,7 +61,6 @@ export const fetchOCPJobsData =
           },
         });
       }
-
       dispatch(setLastUpdatedTime());
     } catch (error) {
       dispatch(showFailureToast());
@@ -269,6 +268,7 @@ export const buildFilterData = () => async (dispatch, getState) => {
 };
 
 export const fetchDataConcurrently = () => async (dispatch) => {
+  console.log("why doing again");
   try {
     await Promise.all([
       dispatch(buildFilterData()),
